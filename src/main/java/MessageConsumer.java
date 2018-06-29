@@ -12,17 +12,21 @@ public class MessageConsumer {
     private Client client;
     private Consumer consumer;
 
-    public MessageConsumer() throws PulsarClientException {
+    public MessageConsumer(String topic, String subscription) throws PulsarClientException {
         client = new Client();
-        consumer = client.getPulsarClient().newConsumer()
-                .topic("my-topic")
-                .subscriptionName("my-subscription")
+        consumer = createConsumer(topic, subscription);
+    }
+
+    private Consumer createConsumer(String topic, String subscription) throws PulsarClientException {
+        return client.getPulsarClient().newConsumer()
+                .topic(topic)
+                .subscriptionName(subscription)
                 .ackTimeout(10, TimeUnit.SECONDS)
                 .subscriptionType(SubscriptionType.Exclusive)
                 .subscribe();
     }
 
-    public void receiveMessage() throws PulsarClientException, ExecutionException, InterruptedException {
+    public void receiveMessage() throws ExecutionException, InterruptedException, PulsarClientException {
         do {
             // Wait for a message
             CompletableFuture<Message> msg = consumer.receiveAsync();
@@ -36,7 +40,7 @@ public class MessageConsumer {
 
 
     public static void main(String[] args) throws PulsarClientException, ExecutionException, InterruptedException {
-        MessageConsumer mc = new MessageConsumer();
-        mc.receiveMessage();
+        MessageConsumer consumer = new MessageConsumer("my-topic", "my-subscription");
+        consumer.receiveMessage();
     }
 }
